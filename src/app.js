@@ -12,4 +12,13 @@ app.use(express.json({limit: "20kb"}))
 app.use(express.urlencoded({extended: true, limit: "20kb"}))
 app.use(express.static("public")) //for accepting and storing public asset(images etc)
 app.use(cookieParser())
+
+// routes import
+
+import userRouter from "./routes/user.routes.js"
+
+app.use("/api/v1/users",userRouter)
+
+//this will like: http://localhost:8000/api/v1/users
+
 export {app}
