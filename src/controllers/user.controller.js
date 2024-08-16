@@ -21,7 +21,8 @@ const registerUser = asyncHandler( async (req,res) => {
 
     // getting user details from frontend    
     const {fullname , email , username , password} = req.body
-    console.log("email of user" , email);
+
+    console.log("Request Body: ",req.body);
 
     // validation - checking if empty
     if(fullname === ""){
@@ -39,34 +40,32 @@ const registerUser = asyncHandler( async (req,res) => {
 
 
     // checking if user already exists: username,email
-    const existedUsername = User.findOne({
-        $or: {username}
+    const existedUser = await User.findOne({
+        $or: [{username} , {email}]
     })
-    const existedEmail = User.findOne({
-        $or: {email}
-    })
-    if(existedUsername){
-        throw new ApiError(409,"User with username already exist in DataBase")
+
+    console.log(existedUser);
+
+    if(existedUser){
+        throw new ApiError(409,"User with username or email already exist in DataBase")
     }
-    else if(existedEmail){
-        throw new ApiError(409,"User with email already exist in DataBase")
-    } 
+    console.log("Request Files: ",req.files);
 
-
-    // checking for images, check for avatar
+    // checking for images, checking for avatar
     const avatarLocalPath = req.files?.avatar[0]?.path
     console.log("Avatar Local Path ",avatarLocalPath);
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
-    console.log("Cover Immage Local Path", coverImageLocalPath);
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path
+    console.log("Cover Image Local Path", coverImageLocalPath);
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar is required")
     }
-
 
     // uploading them on cloudinary  
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
+    console.log("Avatar: ",avatar);
+    console.log("coverImage: ",coverImage);
 
     // checking on cloudinary
     if (!avatar) {
@@ -84,9 +83,12 @@ const registerUser = asyncHandler( async (req,res) => {
         password,
     })
     
+    console.log("User: ",user);
 
     // removing password and referesh token field from response from select()
-    const createdUser = User.findById(user._id).select("-password -refreshTokens")
+    const createdUser = await User.findById(user._id).select("-password -refreshTokens")
+
+    console.log("User Created: ", createdUser);
 
     // checking for user creation
     if (!createdUser) {
@@ -94,8 +96,8 @@ const registerUser = asyncHandler( async (req,res) => {
     }
 
     // returning response in a structured manner 
-    return res.status(201),json(
-        new ApiResponse(200, createdUser , "User registered successfully")
+    return res.status(201).json(
+        new ApiResponse(201, createdUser , "User registered successfully")
     )
 })
 

@@ -13,8 +13,10 @@ const uploadOnCloudinary = async (localFilePath) => {
         const response = await cloudinary.uploader.upload(localFilePath , {
             resource_type: "auto"
         })
-        console.log("File is uploaded on cloudinary successfully ",response);
-        console.log(response.url);
+        // console.log("File is uploaded on cloudinary successfully ",response);
+        // console.log(response.url);
+        //    When uploaded successfully, it will unlink the file
+        fs.unlinkSync(localFilePath)
         return response
     }
     catch(error){
