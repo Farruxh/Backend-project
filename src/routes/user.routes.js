@@ -26,4 +26,6 @@ router.route("/login").post(loginUser)
 router.route("/logout").post(verifyJWT,logoutUser)
 router.route("/refresh-Token").post(refreshAccessTokens)
 
+router.route("/change-password").post(verifyJWT,changeCurrentPassword)
+
 export default router 
