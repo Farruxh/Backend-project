@@ -341,6 +341,72 @@ const updateUserCoverImage = asyncHandler(async(req,res) =>{
         new ApiResponse(200, user, "Cover Image Updated Successfully")
     )
 })
+
+const getUserChannelProfile = asyncHandler(async(req,res) =>{
+    const {username} = req.params
+
+    if (!username?.trim()) {
+       throw new ApiError(400 , "Username is missing")        
+    }
+
+    const channel = await User.aggregate([
+        {
+            $match:{
+                username: username?.toLowerCase()
+            },
+            $lookup:{
+                from: "subscriptions" ,
+                foreignField:"channel" ,
+                localField: "_id",
+                as: "subscriber_detail" 
+            },
+            $lookup:{
+                from: "subscriptions" ,
+                foreignField:"subscriber" ,
+                localField: "_id",
+                as: "subscribedTo_detail" 
+            },
+            $addFields:{
+                subscribersCount:{
+                    $size: "$subscriber_detail"
+                },
+                channelsSbuscribedToCount: {
+                    $size: "$subscribedTo_detail"
+                },
+                isSubscribed: {
+                    if: {$in: [req.user?._id , "$subscriber_detail"]},
+                    then: true,
+                    else: false
+                }
+            },
+            $project: {
+                    fullname: 1,
+                    username: 1,
+                    email: 1,
+                    subscribersCount,
+                    channelsSbuscribedToCount: 1,
+                    isSubscribed: 1,
+                    avatar: 1,
+                    coverImage: 1,
+                    createdAt: 1
+                }
+            
+        }
+    ])
+
+    console.log(channel)
+
+    if (!channel?.length) {
+        throw new ApiError(404, "Channel doesn't exist")
+    }
+    
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, channel[0], "User channel Fetched Successfully")
+    )
+
+})
 export {
     registerUser,
     loginUser,
@@ -350,5 +416,6 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
-    updateUserCoverImage
+    updateUserCoverImage,
+    getUserChannelProfile
 }
