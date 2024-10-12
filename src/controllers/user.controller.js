@@ -383,7 +383,7 @@ const getUserChannelProfile = asyncHandler(async(req,res) =>{
                     fullname: 1,
                     username: 1,
                     email: 1,
-                    subscribersCount,
+                    subscribersCount: 1,
                     channelsSbuscribedToCount: 1,
                     isSubscribed: 1,
                     avatar: 1,
