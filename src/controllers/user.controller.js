@@ -1,7 +1,7 @@
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/user.models.js"
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose"
@@ -314,6 +314,13 @@ const updateUserAvatar = asyncHandler(async(req,res) =>{
         throw new ApiError(400,"Avatar file is missing")
     }
  
+    const userId = await User.findById(req.user._id)
+    const avatarUrl = userId.avatar.url
+    const avatarPublicId = avatarUrl?.split("/").pop().split(".")[0]
+    if (avatarPublicId) {
+        await deleteFromCloudinary(avatarPublicId)
+    }
+
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     if (!avatar.url) {
         throw new ApiError(400, "Error while uploading avatar")
@@ -327,6 +334,10 @@ const updateUserAvatar = asyncHandler(async(req,res) =>{
             },
         }, {new:true}
     ).select("-password")
+
+    if (!user) {
+        throw new ApiError(500, "Error while updating user avatar");
+    }
 
     return res
     .status(200)
@@ -342,8 +353,15 @@ const updateUserCoverImage = asyncHandler(async(req,res) =>{
         throw new ApiError(400,"Cover Image file is missing")
     }
  
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-    if (!coverImage.url) {
+    const userId = await User.findById(req.user._id)
+    const coverImageUrl = userId.coverImage.url
+    const coverImagePublicId = coverImageUrl?.split("/").pop().split(".")[0]
+    if (coverImagePublicId) {
+        await deleteFromCloudinary(coverImagePublicId)
+    }
+    
+    const uploadCoverImage = await uploadOnCloudinary(coverImageLocalPath)
+    if (!uploadCoverImage.url) {
         throw new ApiError(400, "Error while uploading cover image")
     }
     
@@ -351,10 +369,14 @@ const updateUserCoverImage = asyncHandler(async(req,res) =>{
         req.user?._id,
         {
             $set: {
-                coverImage : coverImage.url
+                coverImage : uploadCoverImage.url
             },
         }, {new:true}
     ).select("-password")
+
+    if (!user) {
+        throw new ApiError(500, "Error while updating user cover Image");
+    }
 
     return res
     .status(200)
@@ -436,8 +458,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .json(new ApiResponse(200, channel[0], "User channel Fetched Successfully"));
-  });
-  
+});  
 
 const getWatchHistory = asyncHandler(async(req,res) =>{
     const user = User.aggregate([
