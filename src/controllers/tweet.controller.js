@@ -6,15 +6,13 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 
 const createTweet = asyncHandler(async (req, res) => {
-    const {tweetId} = req.params
     const tweetContent = req.body
 
-    if (!tweetId || !tweetContent) {
+    if (!tweetContent) {
         throw new ApiError(404, "tweetId and content required")
     }
 
     const tweet = await Tweets.Create({
-        id: tweetId,
         content: tweetContent,
         owner: req.user._id
     })
