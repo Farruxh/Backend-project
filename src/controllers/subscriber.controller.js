@@ -1,22 +1,25 @@
 import mongoose, {isValidObjectId} from "mongoose"
-import {User} from "../models/user.model.js"
-import { Subscription } from "../models/subscription.model.js"
+import {User} from "../models/user.models.js"
+import { Subscription } from "../models/subscription.models.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 
 const toggleSubscription = asyncHandler(async (req, res) => {
-    const {channelId} = req.params
-    const {subscriberId} = req.params
+    const {channelId, subscriberId} = req.params
+
+    console.log("Channel ID:", channelId);
+    console.log("Subscriber ID:", subscriberId);
 
     if (!channelId || !subscriberId) {
         throw new ApiError(404, "channel and subscriber Id required")
     }
 
-    const existedSubscribe = await Subscription.find({ subscriber: subscriberId, channel : channelId })
+    const existedSubscribe = await Subscription.findOne({ channel : channelId, subscriber: subscriberId })
 
     if(existedSubscribe) {
-        await deleteOne({ _id: existedSubscribe.id }) 
+        console.log("Existing subscribe: ",existedSubscribe.id);
+        await Subscription.deleteOne({ _id:existedSubscribe.id }) 
         return res
         .status(201)
         .json(
@@ -24,14 +27,15 @@ const toggleSubscription = asyncHandler(async (req, res) => {
         )
     }
     else{
-        const newSubscribe = await Subscription.create({ subscriber: subscriberId, channel : channelId })
+        const newSubscribe = await Subscription.create({ channel : channelId, subscriber: subscriberId })
+        const sub_id = newSubscribe._id
+        console.log("New Subscribe: ",sub_id)
         return res
         .status(201)
         .json(
             new ApiResponse(201,newSubscribe,"Subscribed Successfully")
         )
     }
-
 })
 
 // controller to return subscriber list of a channel
