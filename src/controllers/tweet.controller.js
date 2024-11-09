@@ -1,19 +1,19 @@
 import mongoose, { isValidObjectId } from "mongoose"
-import {Tweets} from "../models/tweet.model.js"
-import {User} from "../models/user.model.js"
+import {Tweets} from "../models/tweets.models.js"
+import {User} from "../models/user.models.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 
 const createTweet = asyncHandler(async (req, res) => {
-    const tweetContent = req.body
-
-    if (!tweetContent) {
-        throw new ApiError(404, "tweetId and content required")
+    const {content} = req.body
+    
+    if (!content) {
+        throw new ApiError(404, "content required")
     }
 
-    const tweet = await Tweets.Create({
-        content: tweetContent,
+    const tweet = await Tweets.create({
+        content: content,
         owner: req.user._id
     })
 
@@ -25,39 +25,17 @@ const createTweet = asyncHandler(async (req, res) => {
 })
 
 const getUserTweets = asyncHandler(async (req, res) => {
-    const userId = req.params
+    const {userId} = req.params
 
     if (!userId) {
         throw new ApiError(404, "User Id required")
     }
 
-    const userTweets = await Tweets.aggregate([
-        {
-            $match: {
-                owner: userId
-            }
-        },
-        {
-            $lookup: {
-                from: "users",
-                foreignField: "user",
-                localField: "_id",
-                as: "tweet_detail",
-            }   
-        },
-        {
-            $unwind: {
-                $tweet_detail
-            }
-        },
-        {
-            $project: {
-                "tweet_detail.id": 1,
-                "tweet_detail.content": 1,
-                "tweet_detail.owner": 1
-            }
-        }
-    ])
+    const userTweets = await Tweets.find({owner:userId})
+
+    if (!userTweets.length) {
+        throw new ApiError(404, "no tweets found for this user")
+    }
 
     return res
     .status(201)
@@ -68,7 +46,7 @@ const getUserTweets = asyncHandler(async (req, res) => {
 
 const updateTweet = asyncHandler(async (req, res) => {
     const {tweetId} = req.params
-    const updatedContent = req.body
+    const {updatedContent} = req.body
 
     if (!tweetId || !updatedContent) {
         throw new ApiError(404, "tweetId and new content required")
@@ -99,7 +77,7 @@ const deleteTweet = asyncHandler(async (req, res) => {
         throw new ApiError(404, "tweetId required")
     }
 
-    await findByIdAndDelete(tweetId)
+    await Tweets.findByIdAndDelete(tweetId)
 
     return res
     .status(201)
