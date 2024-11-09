@@ -31,9 +31,9 @@ app.use("/api/v1/dashboard",dashboardRouter)
 app.use("/api/v1/likes",likeRouter)
 app.use("/api/v1/healthcheck",healthcheckRouter)
 app.use("/api/v1/playlists",playlistRouter)
-app.use("/api/vi/subscriptions",subscriptionRouter)
-app.use("/api/vi/videos",videoRouter)
+app.use("/api/v1/subscriptions",subscriptionRouter)
+app.use("/api/v1/videos",videoRouter)
 
-//this will like: http://localhost:8000/api/v1/users
+//this will like: http://localhost:8000/api/v1/
 
 export {app}
