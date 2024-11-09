@@ -1,5 +1,5 @@
 import mongoose, {isValidObjectId} from "mongoose"
-import {Playlist} from "../models/playlist.model.js"
+import {Playlist} from "../models/playlist.models.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
@@ -22,7 +22,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Something went wrong while creating Playlist")
     }
 
-    console.log("Playlist: ",playlist);
+    console.log("Playlist: ",playlist[0]);
     return res
     .status(201)
     .json(
@@ -37,9 +37,9 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         throw new ApiError(400, "User Id is required")
     }
 
-    const playlists = await Playlist.find({userId})
+    const playlists = await Playlist.find({owner: userId})
 
-    if (!playlists) {
+    if (!playlists.length) {
         throw new ApiError(404, "No playlists found for this user")
     }
     
@@ -81,20 +81,16 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Playlist and video Id required")
     }
 
-    const videoLocalPath = req.files?.video[0]?.path
-
-    const video = await uploadOnCloudinary(videoLocalPath)
-
-    if (!video) {
-        throw new ApiError(400, "Video is required")
-    }
-
     const videoToPlaylist = await Playlist.findById(
         playlistId
     )
 
-    Playlist.videos.push(videoId);
-    await Playlist.save();
+    if (!videoToPlaylist) {
+        throw new ApiError(404, "Playlist not found");
+    }
+
+    videoToPlaylist.videos.push(videoId);
+    await videoToPlaylist.save();
     console.log("Videos on playlist: ",videoToPlaylist);
 
     return res
@@ -119,7 +115,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
         { new: true }
     )
 
-    if (!removedVideo) {
+    if (!removedVideo.length) {
         throw new ApiError(404, "Playlist not found or video not removed");
     }
 
@@ -128,7 +124,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     return res
     .status(201)
     .json(
-        new ApiResponse(201,{},"Playlist Fetched by Id Successfully")
+        new ApiResponse(201,{},"Video removed from playlist successfully")
     )
 })
 
