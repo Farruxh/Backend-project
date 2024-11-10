@@ -3,7 +3,7 @@ import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"
 const commentSchema = new mongoose.Schema(
     {
       id:{
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Like"
       },
       content:{
@@ -11,11 +11,11 @@ const commentSchema = new mongoose.Schema(
         required: true
       },
       video:{
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Video"
       },
       owner:{
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "User"
       },
     },

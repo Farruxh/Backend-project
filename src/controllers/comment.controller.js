@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-import {Comment} from "../models/comment.model.js"
+import {Comment} from "../models/comment.models.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
@@ -25,15 +25,13 @@ const getVideoComments = asyncHandler(async (req, res) => {
             }
         },
         {
-            $unwind: {
-                $comment_detail
-            }
+            $unwind: "$comment_detail"
         },
         {
             $skip: (page-1)/limit
         },
         {
-            $limit: limit
+            $limit: parseInt(limit)
         },
         {
             $project: {
@@ -45,6 +43,10 @@ const getVideoComments = asyncHandler(async (req, res) => {
         }
     ])
 
+    if (!videoComments.length) {
+        throw new ApiError(404,"This video has no comments")
+    }
+
     return res
     .status(201)
     .json(
@@ -54,11 +56,15 @@ const getVideoComments = asyncHandler(async (req, res) => {
 })
 
 const addComment = asyncHandler(async (req, res) => {
-    const videoId = req.params
+    const {videoId} = req.params
     const {content} = req.body
 
-    if(!videoId || !content){
-        throw new ApiError(404,"VideoId and content required")
+    if(!videoId){
+        throw new ApiError(404,"VideoId required")
+    }
+
+    else if(!content){
+        throw new ApiError(404,"Content required")
     }
 
     const comment = await Comment.create({
@@ -75,7 +81,7 @@ const addComment = asyncHandler(async (req, res) => {
 })
 
 const updateComment = asyncHandler(async (req, res) => {
-    const commentId = req.params
+    const {commentId} = req.params
     const {content} = req.body
 
     if(!commentId || !content){
@@ -97,7 +103,7 @@ const updateComment = asyncHandler(async (req, res) => {
 })
 
 const deleteComment = asyncHandler(async (req, res) => {
-    const commentId = req.params
+    const {commentId} = req.params
 
     if(!commentId){
         throw new ApiError(404,"CommentId required")
