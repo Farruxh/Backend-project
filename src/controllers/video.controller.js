@@ -1,38 +1,15 @@
-import mongoose, {isValidObjectId} from "mongoose"
+import mongoose from "mongoose"
 import {Video} from "../models/video.models.js"
-import {User} from "../models/user.models.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
-import { loginUser } from "./user.controller.js"
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy = "createdAt", sortType = "asc", userId } = req.query
-
-    // const filter = {}
-    // if (query) {
-    //     filter.$or= [
-    //         {title :{ $regex : query, $options : "i"}},
-    //         {description : { $regex : query, $options : "i"}}
-    //     ]
-    // }
-    // if (userId) {
-    //     filter.userId = userId
-    // }
-
-    // const sort = { [sort] : sortType === "asc"? 1 : -1}
-
-    // const skip = (page - 1)/limit
-
-    // const video = Video
-    // .find(filter)
-    // .sort(sort)
-    // .skip(skip)
-    // .limit(limit)
+    const { page = 1, limit = 10, query = "", sortBy = "createdAt", sortType = "asc", userId } = req.query
     
-    if (!query || !userId) {
-        throw new ApiError(400, "query and username required");
+    if (!userId) {
+        throw new ApiError(400, "user id required");
     }
     const video = await Video.aggregate([
         {
@@ -41,14 +18,14 @@ const getAllVideos = asyncHandler(async (req, res) => {
                     {title :{ $regex : query, $options : "i"} },
                     {description :{ $regex : query, $options : "i"} },
                 ],
-                videoOwner : userId 
+                videoOwner : new mongoose.Types.ObjectId(userId) 
             }
         },
         {
             $sort  : { [sortBy] : sortType === "asc"? 1 : -1}
         },
         {
-            $skip  :(page - 1)/limit
+            $skip  :(page - 1)*limit
         },
         {
             $limit: parseInt(limit)
@@ -63,7 +40,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     ])
 
     if (!video.length) {
-        throw new ApiError(404, "No videos found for this user")
+        throw new ApiError(404, "No videos found for this user with such title or description")
     }
 
     return res
