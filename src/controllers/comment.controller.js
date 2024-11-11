@@ -14,34 +14,25 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
     const videoComments = await Comment.aggregate([
         {
-            $match: {video:videoId}
+            $match: { video: new mongoose.Types.ObjectId(videoId) }
         },
         {
-            $lookup: {
-                from: "videos",
-                foreignField: "video",
-                localField: "_id",
-                as: "comment_detail",
-            }
-        },
-        {
-            $unwind: "$comment_detail"
-        },
-        {
-            $skip: (page-1)/limit
+            $skip  :(page - 1)*limit
         },
         {
             $limit: parseInt(limit)
         },
         {
             $project: {
-                "comment_detail.id":1,
-                "comment_detail.content":1,
-                "comment_detail.video":1,
-                "comment_detail.owner":1,
+                _id: 1,
+                content: 1,
+                video: 1,
+                owner: 1
             }
         }
     ])
+
+    // const videoComments = await Comment.find({video: videoId})
 
     if (!videoComments.length) {
         throw new ApiError(404,"This video has no comments")
@@ -89,7 +80,8 @@ const updateComment = asyncHandler(async (req, res) => {
     }
 
     const updatedComment = await Comment.findByIdAndUpdate(
-        commentId,{
+        commentId,
+        {
             $set: { content : content }
         },
         {new:true}
@@ -113,7 +105,7 @@ const deleteComment = asyncHandler(async (req, res) => {
     return res
     .status(201)
     .json(
-        new ApiResponse(201,{},"Comment Updated successfully")
+        new ApiResponse(201,{},"Comment Deleted successfully")
     )
 })
 
