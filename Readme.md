@@ -1,6 +1,6 @@
-# YouTube Clone Backend (MERN Stack)
+# YouTube Backend Clone  
 
-This project is a backend clone of YouTube, created as part of my journey in mastering the **MERN stack**. It showcases various backend concepts and best practices used in professional development, focusing on **API development**, **database integration**, **middleware usage**, and **cloud storage**.
+This project is a backend clone of YouTube, created as part of my journey in mastering **MongoDB, Express, and Node.js**. It showcases various backend concepts and best practices used in professional development, focusing on **API development**, **database integration**, **middleware usage**, and **cloud storage**.  
 
 ## Overview
 
@@ -54,6 +54,6 @@ In this project, I learned how to build and structure a robust backend system th
 - **Cloudinary**: Cloud storage for images and videos.
 - **Nodemon**: Auto-restarts the server during development.
 
-## Conclusion
+## Conclusion  
 
-This backend project is an excellent demonstration of my learning journey through the **MERN stack**, covering **API development**, **database management**, **file storage** with **Cloudinary**, and implementing **custom middleware**. It serves as a foundational project that has helped me gain a deeper understanding of backend practices and how to structure a scalable, maintainable system.
+This backend project is an excellent demonstration of my learning journey with **MongoDB, Express, and Node.js**, covering **API development**, **database management**, **file storage** with **Cloudinary**, and implementing **custom middleware**. It serves as a foundational project that has helped me gain a deeper understanding of backend practices and how to structure a scalable, maintainable system.  
